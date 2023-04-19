@@ -62,7 +62,7 @@ class BluetoothDevice:
             if(self.is_host):
                 self.device_registry.connected_hosts.append(self)
                 addr = self.object_path[-17:].replace("_",":")
-                asyncio.create_task(self.device_registry.switch_to_master(addr))
+                # asyncio.create_task(self.device_registry.switch_to_master(addr))
             else:
                 self.device_registry.connected_devices.append(self)
             print("Connected sockets for ",self.object_path)
@@ -188,7 +188,7 @@ class BluetoothDeviceRegistry:
             print("Device ", device_object_path, " already exist. Cannot add. Skipping.")
             return
         #ensure master role for this connection, otherwise latency of sending packets to hosts may get pretty bad
-        asyncio.ensure_future(self.switch_to_master(device_object_path[-17:].replace("_",":")))
+        # asyncio.ensure_future(self.switch_to_master(device_object_path[-17:].replace("_",":")))
         p = self.bus.get_proxy(service_name="org.bluez", object_path=device_object_path, interface_name=INPUT_HOST_INTERFACE if is_host else INPUT_DEVICE_INTERFACE)
         device = BluetoothDevice(self.bus, self.loop, self, device_object_path, is_host, p.SocketPathCtrl, p.SocketPathIntr)
         self.all[device_object_path] = device
