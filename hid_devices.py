@@ -8,9 +8,6 @@ import asyncio
 import evdev
 import time
 from hid_message_filter import HIDMessageFilter
-from a1314_message_filter import A1314MessageFilter
-from mouse_g502_message_filter import G502MessageFilter
-from mouse_mx510_message_filter import MX510MessageFilter
 from mouse_message_filter import MouseMessageFilter
 from combo_sk8845_message_filter import SK8845MessageFilter
 from typing import Dict, List
@@ -24,18 +21,12 @@ FILTER_ELEMENT = 'filter'
 FILTERS = [
     {"id": "Default", "name": "Default"},
     {"id": "Mouse", "name": "Mouse"},
-    # {"id":"A1314", "name":"A1314"},
-    # {"id":"G502", "name":"G502"},
-    # {"id":"MX510", "name":"MX510"},
     {"id": "SK-8845", "name": "SK-8845"}
 ]
 
 FILTER_INSTANCES = {
     "Default": HIDMessageFilter(),
     "Mouse": MouseMessageFilter(),
-    # "A1314":A1314MessageFilter(),
-    # "G502":G502MessageFilter(),
-    # "MX510":MX510MessageFilter(),
     "SK-8845": SK8845MessageFilter()
 }
 
