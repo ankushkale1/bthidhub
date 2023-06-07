@@ -3,6 +3,7 @@ from keycodes import *
 
 # IBM SK-8845 filter
 
+
 class SK8845MessageFilter(HIDMessageFilter):
     def __init__(self):
         self.byteorder = "little"
@@ -23,8 +24,10 @@ class SK8845MessageFilter(HIDMessageFilter):
         modifier_remapped = 0
         for before, after in self.key_remap_modifier.items():
             if modbyte[0] & int.from_bytes(before, byteorder=self.byteorder, signed=self.signed):
-                modifier_remapped = modifier_remapped | int.from_bytes(after, byteorder=self.byteorder, signed=self.signed)
-        modbyte = modifier_remapped.to_bytes(1, self.byteorder, signed=self.signed) + modbyte[1:8]
+                modifier_remapped = modifier_remapped | int.from_bytes(
+                    after, byteorder=self.byteorder, signed=self.signed)
+        modbyte = modifier_remapped.to_bytes(
+            1, self.byteorder, signed=self.signed) + modbyte[1:8]
         return modbyte
 
     def key_press(self, keycode: bytes) -> bytes:
@@ -49,7 +52,8 @@ class SK8845MessageFilter(HIDMessageFilter):
 
     def filter_message_to_host(self, msg) -> bytes:
         if len(msg) == 8:
-            self.keyboard_buf = b'\xa1\x01' + self.remap_modifier(msg[0:1]) + msg[1:8]
+            self.keyboard_buf = b'\xa1\x01' + \
+                self.remap_modifier(msg[0:1]) + msg[1:8]
             return self.keyboard_buf
         elif len(msg) == 5 and msg[0] == 1:
             # mouse
@@ -58,11 +62,13 @@ class SK8845MessageFilter(HIDMessageFilter):
             return b'\xa1\x03' + self.get_buttons_flags(msg) + self.get_x(msg) + self.get_y(msg) + self.get_wheel(msg)
         elif msg[0] == 2:
             # HANDLE_KEY(buf[1] == 2, KEY_ARDUINO_F15);
-            code = int.from_bytes(msg[1:2], byteorder=self.byteorder, signed=self.signed)
+            code = int.from_bytes(
+                msg[1:2], byteorder=self.byteorder, signed=self.signed)
             self.handle_key(code == 2, KEY_F15)
             return self.keyboard_buf
         elif msg[0] == 3:
-            msg_in_int = int.from_bytes(msg[1:4], byteorder="big", signed=False)
+            msg_in_int = int.from_bytes(
+                msg[1:4], byteorder="big", signed=False)
             self.handle_key(0 != (msg_in_int & BYTES_MAGNIFIER), KEY_F13)
             self.handle_key(0 != (msg_in_int & BYTES_SCREEN_OFF), KEY_F14)
             self.handle_key(0 != (msg_in_int & BYTES_WIRELESS), KEY_F16)
@@ -72,7 +78,8 @@ class SK8845MessageFilter(HIDMessageFilter):
             self.handle_key(0 != (msg_in_int & BYTES_BRIGHTNESS_DOWN), KEY_F21)
             self.handle_key(0 != (msg_in_int & BYTES_ACCESS_IBM), KEY_F22)
             self.handle_key(0 != (msg_in_int & BYTES_VOLUME_UP), KEY_VOLUMEUP)
-            self.handle_key(0 != (msg_in_int & BYTES_VOLUME_DOWN), KEY_VOLUMEDOWN)
+            self.handle_key(
+                0 != (msg_in_int & BYTES_VOLUME_DOWN), KEY_VOLUMEDOWN)
             self.handle_key(0 != (msg_in_int & BYTES_VOLUME_MUTE), KEY_MUTE)
             return self.keyboard_buf
         print("unrecognized pattern")
@@ -82,12 +89,14 @@ class SK8845MessageFilter(HIDMessageFilter):
         return msg[1:2] + b'\x00'
 
     def get_x(self, msg):
-        value = int.from_bytes(msg[2:3], byteorder=self.byteorder, signed=self.signed)
+        value = int.from_bytes(
+            msg[2:3], byteorder=self.byteorder, signed=self.signed)
         result = value.to_bytes(2, self.byteorder, signed=self.signed)
         return result
 
     def get_y(self, msg):
-        value = int.from_bytes(msg[3:4], byteorder=self.byteorder, signed=self.signed)
+        value = int.from_bytes(
+            msg[3:4], byteorder=self.byteorder, signed=self.signed)
         result = value.to_bytes(2, self.byteorder, signed=self.signed)
         return result
 

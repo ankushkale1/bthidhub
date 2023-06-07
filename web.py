@@ -1,6 +1,6 @@
 # Copyright (c) 2020 ruundii. All rights reserved.
 
-from aiohttp import web,WSMessage
+from aiohttp import web, WSMessage
 from password import *
 import json
 from hid_devices import *
@@ -18,6 +18,7 @@ from aiohttp_security.abc import AbstractAuthorizationPolicy
 
 PI_USER = 'pi'
 
+
 class PiAuthorizationPolicy(AbstractAuthorizationPolicy):
     async def authorized_userid(self, identity):
         """Retrieve authorized user id.
@@ -34,35 +35,51 @@ class PiAuthorizationPolicy(AbstractAuthorizationPolicy):
         """
         return identity == PI_USER
 
+
 class Web:
-    def __init__(self, loop: asyncio.AbstractEventLoop, adapter, bluetooth_devices:BluetoothDeviceRegistry, hid_devices: HIDDeviceRegistry):
+    def __init__(self, loop: asyncio.AbstractEventLoop, adapter, bluetooth_devices: BluetoothDeviceRegistry, hid_devices: HIDDeviceRegistry):
         self.loop = loop
         self.adapter = adapter
         self.adapter.set_on_agent_action_handler(self.on_agent_action)
-        self.adapter.set_on_interface_changed_handler(self.on_adapter_interface_changed)
+        self.adapter.set_on_interface_changed_handler(
+            self.on_adapter_interface_changed)
         self.hid_devices = hid_devices
-        self.hid_devices.set_on_devices_changed_handler(self.on_hid_devices_change)
+        self.hid_devices.set_on_devices_changed_handler(
+            self.on_hid_devices_change)
         self.bluetooth_devices = bluetooth_devices
-        self.bluetooth_devices.set_on_devices_changed_handler(self.on_bluetooth_devices_change)
+        self.bluetooth_devices.set_on_devices_changed_handler(
+            self.on_bluetooth_devices_change)
         middleware = session_middleware(SimpleCookieStorage())
         self.app = web.Application(middlewares=[middleware])
         self.app.router.add_route('*', '/', self.root_handler)
-        self.app.router.add_route('POST', '/changepassword', self.change_password_handler)
-        self.app.router.add_route('POST', '/restartservice', self.restart_service_handler)
+        self.app.router.add_route(
+            'POST', '/changepassword', self.change_password_handler)
+        self.app.router.add_route(
+            'POST', '/restartservice', self.restart_service_handler)
         self.app.router.add_route('POST', '/reboot', self.reboot_handler)
         self.app.router.add_route('POST', '/login', self.handler_login)
-        self.app.router.add_route('GET', '/authorised', self.handler_is_authorised)
-        self.app.router.add_route('POST', '/setdevicecapture', self.set_device_capture)
-        self.app.router.add_route('POST', '/setdevicefilter', self.set_device_filter)
-        self.app.router.add_route('POST', '/setcompatibilitydevice', self.set_compatibility_device)
-        self.app.router.add_route('POST', '/startscanning', self.start_scanning)
+        self.app.router.add_route(
+            'GET', '/authorised', self.handler_is_authorised)
+        self.app.router.add_route(
+            'POST', '/setdevicecapture', self.set_device_capture)
+        self.app.router.add_route(
+            'POST', '/setdevicefilter', self.set_device_filter)
+        self.app.router.add_route(
+            'POST', '/setcompatibilitydevice', self.set_compatibility_device)
+        self.app.router.add_route(
+            'POST', '/startscanning', self.start_scanning)
         self.app.router.add_route('POST', '/stopscanning', self.stop_scanning)
-        self.app.router.add_route('POST', '/startdiscoverable', self.start_discoverable)
-        self.app.router.add_route('POST', '/stopdiscoverable', self.stop_discoverable)
-        self.app.router.add_route('GET', '/hiddevices', self.get_hid_devices_handler)
-        self.app.router.add_route('GET', '/bluetoothdevices', self.get_bluetooth_devices)
+        self.app.router.add_route(
+            'POST', '/startdiscoverable', self.start_discoverable)
+        self.app.router.add_route(
+            'POST', '/stopdiscoverable', self.stop_discoverable)
+        self.app.router.add_route(
+            'GET', '/hiddevices', self.get_hid_devices_handler)
+        self.app.router.add_route(
+            'GET', '/bluetoothdevices', self.get_bluetooth_devices)
         self.app.router.add_routes([web.get('/ws', self.websocket_handler)])
-        self.app.router.add_static('/',"web/")# add_routes([web.get('/', self.hello)])
+        # add_routes([web.get('/', self.hello)])
+        self.app.router.add_static('/', "web/")
 
         policy = SessionIdentityPolicy()
         setup_security(self.app, policy, PiAuthorizationPolicy())
@@ -71,13 +88,13 @@ class Web:
         self.site = None
         self.ws = []
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
-        #web.run_app(self.app)
+        # web.run_app(self.app)
         asyncio.run_coroutine_threadsafe(self.start_server(), loop=self.loop)
 
     async def handler_login(self, request):
         data = await request.post()
         password = data['password']
-        if(is_valid_current_password(PI_USER, password)):
+        if (is_valid_current_password(PI_USER, password)):
             redirect_response = web.HTTPFound('/')
             await remember(request, redirect_response, PI_USER)
             raise redirect_response
@@ -149,9 +166,9 @@ class Web:
         data = await request.post()
         device_path = data['device_path']
         compatibility_state = data['compatibility_state'].lower() == 'true'
-        self.hid_devices.set_compatibility_device(device_path, compatibility_state)
+        self.hid_devices.set_compatibility_device(
+            device_path, compatibility_state)
         return web.Response()
-
 
     async def start_scanning(self, request):
         await check_authorized(request)
@@ -168,7 +185,6 @@ class Web:
         except Exception as exc:
             return web.HTTPError(reason=str(exc))
         return web.Response()
-
 
     async def start_discoverable(self, request):
         await check_authorized(request)
@@ -192,11 +208,13 @@ class Web:
 
     async def on_agent_action(self, msg):
         for ws in self.ws:
-            asyncio.run_coroutine_threadsafe(ws.send_json({'msg': 'agent_action', 'data':msg}), loop=self.loop)
+            asyncio.run_coroutine_threadsafe(ws.send_json(
+                {'msg': 'agent_action', 'data': msg}), loop=self.loop)
 
     async def on_adapter_interface_changed(self):
         for ws in self.ws:
-            asyncio.run_coroutine_threadsafe(ws.send_json({'msg': 'bt_devices_updated'}), loop=self.loop)
+            asyncio.run_coroutine_threadsafe(ws.send_json(
+                {'msg': 'bt_devices_updated'}), loop=self.loop)
 
     async def websocket_handler(self, request):
         await check_authorized(request)
@@ -212,25 +230,30 @@ class Web:
                         await ws.close()
                     elif data['msg'] == 'connect':
                         self.ws.append(ws)
-                        await ws.send_json({'msg':'connected'})
+                        await ws.send_json({'msg': 'connected'})
                         print('websocket connection opened')
                     elif data['msg'] == 'cancel_pairing':
                         self.adapter.cancel_pairing(data['device'])
                     elif data['msg'] == 'request_confirmation_response':
-                        self.adapter.agent_request_confirmation_response(data['device'], data['passkey'], data['confirmed'])
+                        self.adapter.agent_request_confirmation_response(
+                            data['device'], data['passkey'], data['confirmed'])
                     elif data['msg'] == 'pair_device':
                         print("pairing")
-                        self.loop.run_in_executor(self.executor, self.adapter.device_action, 'pair', data['device'])
+                        self.loop.run_in_executor(
+                            self.executor, self.adapter.device_action, 'pair', data['device'])
                         print("pairing end")
                     elif data['msg'] == 'connect_device':
-                        self.loop.run_in_executor(self.executor, self.adapter.device_action, 'connect', data['device'])
+                        self.loop.run_in_executor(
+                            self.executor, self.adapter.device_action, 'connect', data['device'])
                     elif data['msg'] == 'disconnect_device':
-                        self.loop.run_in_executor(self.executor, self.adapter.device_action, 'disconnect', data['device'])
+                        self.loop.run_in_executor(
+                            self.executor, self.adapter.device_action, 'disconnect', data['device'])
                     elif data['msg'] == 'remove_device':
-                        self.loop.run_in_executor(self.executor, self.adapter.remove_device, data['device'])
+                        self.loop.run_in_executor(
+                            self.executor, self.adapter.remove_device, data['device'])
                     else:
                         pass
-                        #await ws.send_json({'msg':'connected'})
+                        # await ws.send_json({'msg':'connected'})
             elif msg.type == web.WSMsgType.ERROR:
                 print('ws connection closed with exception %s' %
                       ws.exception())

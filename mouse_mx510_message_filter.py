@@ -48,7 +48,6 @@ from bitarray.util import ba2int
 # 0xc0,                          // End Collection                      76
 
 
-
 class MX510MessageFilter(MouseMessageFilter):
     # first 8 bits are flags for buttons. 01 is left button, 02 is right, 04 is scroll
     # second 16 bits are vendor specific x and y, one byte each
@@ -69,8 +68,7 @@ class MX510MessageFilter(MouseMessageFilter):
     def get_y(self, msg):
         a = bitarray()
         a.frombytes(msg[5:7])
-        return int.to_bytes(ba2int(a[8:16]+a[0:4],signed=True), 2, "little", signed=True)
+        return int.to_bytes(ba2int(a[8:16]+a[0:4], signed=True), 2, "little", signed=True)
 
     def get_wheel(self, msg):
         return msg[3:4]
-

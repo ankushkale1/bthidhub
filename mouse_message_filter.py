@@ -2,7 +2,7 @@
 #
 from hid_message_filter import HIDMessageFilter
 
-#default mouse filter
+# default mouse filter
 
 # first 16 bits are flags for buttons. 01 is left button, 02 is right, 04 is scroll
 # second 16 bits are X -32767 to 32767
@@ -54,7 +54,9 @@ class MouseMessageFilter(HIDMessageFilter):
     def filter_message_to_host(self, msg):
         if len(msg) != self.message_size:
             return None
-        msg = b'\xa1\x03' + self.get_buttons_flags(msg) + self.get_x(msg) + self.get_y(msg) + self.get_wheel(msg)
+        msg = b'\xa1\x03' + \
+            self.get_buttons_flags(msg) + self.get_x(msg) + \
+            self.get_y(msg) + self.get_wheel(msg)
         return msg
 
     def get_buttons_flags(self, msg):

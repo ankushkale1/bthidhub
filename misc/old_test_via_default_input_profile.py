@@ -4,15 +4,16 @@ from dasbus.connection import SystemMessageBus
 import dasbus.typing as dt
 import sys
 from dasbus.server.interface import dbus_interface
-#from dasbus.loop import EventLoop
+# from dasbus.loop import EventLoop
 from agent import Agent
 import socket
 import threading
 
-import asyncio, gbulb
+import asyncio
+import gbulb
 gbulb.install()
-#import asyncio_glib
-#asyncio.set_event_loop_policy(asyncio_glib.GLibEventLoopPolicy())
+# import asyncio_glib
+# asyncio.set_event_loop_policy(asyncio_glib.GLibEventLoopPolicy())
 
 # UUID for HID service (1124)
 # https://www.bluetooth.com/specifications/assigned-numbers/service-discovery
@@ -38,9 +39,10 @@ class MyProfile(object):
     def Cancel(self):
         print("Cancel")
 
-    def NewConnection(self, path:dt.ObjPath, fd:dt.File, properties:dt.Dict[dt.Str, dt.Variant]):
-        print("New Connection",path,fd,properties)
-        sckt = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_SEQPACKET, socket.BTPROTO_L2CAP)  # BluetoothSocket(L2CAP)
+    def NewConnection(self, path: dt.ObjPath, fd: dt.File, properties: dt.Dict[dt.Str, dt.Variant]):
+        print("New Connection", path, fd, properties)
+        sckt = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_SEQPACKET,
+                             socket.BTPROTO_L2CAP)  # BluetoothSocket(L2CAP)
         sckt.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # bind the socket to a port - port zero to select next available
         sckt.bind((socket.BDADDR_ANY, PORT_INTR))
@@ -50,9 +52,9 @@ class MyProfile(object):
         print("Got a connection on the interrupt channel from %s " % cinfo[0])
         asyncio.run_coroutine_threadsafe(self.loop_of_fun())
         print("NewConnection finish")
-        print("NewConnection thread",threading.currentThread().getName())
+        print("NewConnection thread", threading.currentThread().getName())
 
-    def RequestDisconnection(self, path:dt.Str):
+    def RequestDisconnection(self, path: dt.Str):
         print("RequestDisconnection")
 
     async def loop_of_fun(self):
@@ -60,15 +62,20 @@ class MyProfile(object):
         await asyncio.sleep(5)
         for i in range(1, 100):
             print("sending Hi")
-            self.cinterrupt.send(bytes(bytearray([0xA1, 0x01, 0x00, 0x00, 0x0B, 0x0C, 0x00, 0x00, 0x00, 0x00])))
+            self.cinterrupt.send(
+                bytes(bytearray([0xA1, 0x01, 0x00, 0x00, 0x0B, 0x0C, 0x00, 0x00, 0x00, 0x00])))
             # cinterrupt.send(bytes(bytearray([0xA1, 0x01, 0x00, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00])))
-            self.cinterrupt.send(bytes(bytearray([0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])))
-            self.cinterrupt.send(bytes(bytearray([0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])))
+            self.cinterrupt.send(
+                bytes(bytearray([0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])))
+            self.cinterrupt.send(
+                bytes(bytearray([0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])))
             await asyncio.sleep(10)
+
 
 class BluetoothAdapter:
     def __init__(self):
-        self.om = bus.get_proxy(service_name= "org.bluez", object_path="/", interface_name="org.freedesktop.DBus.ObjectManager")
+        self.om = bus.get_proxy(service_name="org.bluez", object_path="/",
+                                interface_name="org.freedesktop.DBus.ObjectManager")
         self.om.InterfacesAdded.connect(self.interfaces_added)
         self.om.InterfacesRemoved.connect(self.interfaces_removed)
 
@@ -80,10 +87,11 @@ class BluetoothAdapter:
 
         objs = self.om.GetManagedObjects()
         if ADAPTER_OBJECT in objs:
-            print("Adapter ",ADAPTER_OBJECT, " found")
+            print("Adapter ", ADAPTER_OBJECT, " found")
             self.init_adapter()
         else:
-            print("Adapter ",ADAPTER_OBJECT, " not found. Please make sure you have Bluetooth Adapter installed and plugged in")
+            print("Adapter ", ADAPTER_OBJECT,
+                  " not found. Please make sure you have Bluetooth Adapter installed and plugged in")
             self.adapter = None
 
     def init_adapter(self):
@@ -97,7 +105,7 @@ class BluetoothAdapter:
             print("Bluetooth adapter is turned off. Trying to turn on")
             try:
                 self.powered = True
-                if(self.powered):
+                if (self.powered):
                     print("Successfully turned on")
                 else:
                     print("Failed to turn on. Please turn on Bluetooth in the system")
@@ -146,14 +154,13 @@ class BluetoothAdapter:
     def discoverable_timeout(self, new_value):
         self.adapter.DiscoverableTimeout = new_value
 
-
     def interfaces_added(self, interface_name, properties):
-        if(interface_name==ADAPTER_OBJECT):
+        if (interface_name == ADAPTER_OBJECT):
             print("Bluetooth adapter added. Starting")
             self.init_adapter()
 
     def interfaces_removed(self, interface_name, properties):
-        if(interface_name==ADAPTER_OBJECT):
+        if (interface_name == ADAPTER_OBJECT):
             self.adapter = None
             print("Bluetooth adapter removed. Stopping")
 
@@ -172,26 +179,25 @@ def read_sdp_service_record():
     return fh.read()
 
 
-
 opts = {
-    'Name':  dt.get_variant(dt.Str,DEVICE_NAME),
-    'Role':  dt.get_variant(dt.Str,'server'),
+    'Name':  dt.get_variant(dt.Str, DEVICE_NAME),
+    'Role':  dt.get_variant(dt.Str, 'server'),
     'RequireAuthentication': dt.get_variant(dt.Bool, False),
     'RequireAuthorization': dt.get_variant(dt.Bool, True),
     'PSM': dt.get_variant(dt.UInt16, PORT_CTRL),
     'AutoConnect': dt.get_variant(dt.Bool, True),
     'ServiceRecord': dt.get_variant(dt.Str, read_sdp_service_record()),
-    'HIDProfileId' :dt.get_variant(dt.UInt16, 1),
+    'HIDProfileId': dt.get_variant(dt.UInt16, 1),
 }
 if __name__ == "__main__":
 
-    #bus.publish_object(DBUS_PATH_PROFILE,p)
-    #profile_manager = bus.get_proxy(service_name= "org.bluez", object_path="/org/bluez", interface_name="org.bluez.ProfileManager1")
-    #profile_manager.RegisterProfile(DBUS_PATH_PROFILE, UUID, opts)
-    #print('Profile registered')
+    # bus.publish_object(DBUS_PATH_PROFILE,p)
+    # profile_manager = bus.get_proxy(service_name= "org.bluez", object_path="/org/bluez", interface_name="org.bluez.ProfileManager1")
+    # profile_manager.RegisterProfile(DBUS_PATH_PROFILE, UUID, opts)
+    # print('Profile registered')
 
     a = BluetoothAdapter()
     loop.run_forever()
 
 
-#print(proxy)
+# print(proxy)

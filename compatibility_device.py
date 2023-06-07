@@ -4,30 +4,30 @@ import asyncio
 from typing import List
 
 CONSUMER_KEYS_EVENT_TO_USAGE_FLAG_MAPPING = {
-    ecodes.KEY_NEXTSONG : 0x01, # Usage (Scan Next Track)
-    ecodes.KEY_PREVIOUSSONG : 0x02, # Usage (Scan Previous Track)
-    ecodes.KEY_STOP : 0x04,  # Usage (Stop)
-    ecodes.KEY_PLAYPAUSE : 0x08,  # Usage (Play/Pause)
-    ecodes.KEY_MUTE : 0x10,  # Usage (Mute)
-    ecodes.KEY_VOLUMEUP : 0x20,  # Usage (Volume Increment)
-    ecodes.KEY_VOLUMEDOWN : 0x40,  # Usage (Volume Decrement)
+    ecodes.KEY_NEXTSONG: 0x01,  # Usage (Scan Next Track)
+    ecodes.KEY_PREVIOUSSONG: 0x02,  # Usage (Scan Previous Track)
+    ecodes.KEY_STOP: 0x04,  # Usage (Stop)
+    ecodes.KEY_PLAYPAUSE: 0x08,  # Usage (Play/Pause)
+    ecodes.KEY_MUTE: 0x10,  # Usage (Mute)
+    ecodes.KEY_VOLUMEUP: 0x20,  # Usage (Volume Increment)
+    ecodes.KEY_VOLUMEDOWN: 0x40,  # Usage (Volume Decrement)
 }
 
 MODIFIER_KEYS_EVENT_TO_USAGE_FLAG_MAPPING = {
-    ecodes.KEY_LEFTCTRL : 0x01,
-    ecodes.KEY_LEFTSHIFT : 0x02,
-    ecodes.KEY_LEFTALT : 0x04,
-    ecodes.KEY_LEFTMETA : 0x08,
-    ecodes.KEY_RIGHTCTRL : 0x10,
-    ecodes.KEY_RIGHTSHIFT : 0x20,
-    ecodes.KEY_RIGHTALT : 0x40,
+    ecodes.KEY_LEFTCTRL: 0x01,
+    ecodes.KEY_LEFTSHIFT: 0x02,
+    ecodes.KEY_LEFTALT: 0x04,
+    ecodes.KEY_LEFTMETA: 0x08,
+    ecodes.KEY_RIGHTCTRL: 0x10,
+    ecodes.KEY_RIGHTSHIFT: 0x20,
+    ecodes.KEY_RIGHTALT: 0x40,
     ecodes.KEY_RIGHTMETA: 0x80,
 }
 
-#see https://www.usb.org/sites/default/files/hut1_2.pdf
-#a bit unsure about US layouts and HID usage 31, now producing 0x32 usage for key_backslash, not sure if 0x31 need to be produced for us backslash. also ecodes.KEY_102ND
+# see https://www.usb.org/sites/default/files/hut1_2.pdf
+# a bit unsure about US layouts and HID usage 31, now producing 0x32 usage for key_backslash, not sure if 0x31 need to be produced for us backslash. also ecodes.KEY_102ND
 NORMAL_KEYS_EVENT_TO_USAGE_FLAG_MAPPING = {
-    ecodes.KEY_RESERVED : 0x00,
+    ecodes.KEY_RESERVED: 0x00,
     ecodes.KEY_A: 0x04,
     ecodes.KEY_B: 0x05,
     ecodes.KEY_C: 0x06,
@@ -93,7 +93,7 @@ NORMAL_KEYS_EVENT_TO_USAGE_FLAG_MAPPING = {
     ecodes.KEY_F10: 0x43,
     ecodes.KEY_F11: 0x44,
     ecodes.KEY_F12: 0x45,
-    ecodes.KEY_SYSRQ: 0x46, #print screen
+    ecodes.KEY_SYSRQ: 0x46,  # print screen
     ecodes.KEY_SCROLLLOCK: 0x47,
     ecodes.KEY_PAUSE: 0x48,
     ecodes.KEY_INSERT: 0x49,
@@ -123,7 +123,7 @@ NORMAL_KEYS_EVENT_TO_USAGE_FLAG_MAPPING = {
     ecodes.KEY_KP9: 0x61,
     ecodes.KEY_KP0: 0x62,
     ecodes.KEY_KPDOT: 0x63,
-    ecodes.KEY_102ND: 0x64, #uk pipe and backslash
+    ecodes.KEY_102ND: 0x64,  # uk pipe and backslash
     ecodes.KEY_COMPOSE: 0x65,
     ecodes.KEY_POWER: 0x66,
     ecodes.KEY_KPEQUAL: 0x67,
@@ -132,9 +132,10 @@ NORMAL_KEYS_EVENT_TO_USAGE_FLAG_MAPPING = {
     ecodes.KEY_F15: 0x6a,
     ecodes.KEY_F16: 0x6b,
     ecodes.KEY_F17: 0x6c,
-    ecodes.KEY_F18: 0x6d # last usage for the HID descriptor
+    ecodes.KEY_F18: 0x6d  # last usage for the HID descriptor
 
 }
+
 
 class CompatibilityModeDevice:
     def __init__(self, loop: asyncio.AbstractEventLoop, device_path):
@@ -144,20 +145,21 @@ class CompatibilityModeDevice:
         self.ev_device.grab()
         self.hidraw_device = UHIDDevice()
         self.hidraw_device.name = "BT HID Hub Virtual Hid Raw Keyboard"
-        self.hidraw_device.info = [0x06, 0x0001, 0x0001]  # 0x06 - BUS_VIRTUAL, vendor id 1 product id 1
+        # 0x06 - BUS_VIRTUAL, vendor id 1 product id 1
+        self.hidraw_device.info = [0x06, 0x0001, 0x0001]
         self.hidraw_device.phys = "0"
         self.hidraw_device.rdesc = bytearray.fromhex(
             "05010906a1018501050719e029e715002501750195088102950175088103950575010508190129059102950175039103950675081500256d05071900296d8100c0050C0901A1018502050C150025017501950709B509B609B709CD09E209E909EA810295018101C0")
-        self.pressed_keys:List[int]=[]
-        self.pressed_consumer_keys:List[int]=[]
+        self.pressed_keys: List[int] = []
+        self.pressed_consumer_keys: List[int] = []
 
         self.hidraw_device.create_kernel_device()
-        asyncio.run_coroutine_threadsafe(self.__read_events(),self.loop)
-        print("Compatibility Device ",self.device_path," initialised")
+        asyncio.run_coroutine_threadsafe(self.__read_events(), self.loop)
+        print("Compatibility Device ", self.device_path, " initialised")
 
     async def __read_events(self):
         async for ev in self.ev_device.async_read_loop():
-            if ev.type == ecodes.EV_KEY and ev.value<2:
+            if ev.type == ecodes.EV_KEY and ev.value < 2:
                 print(categorize(ev))
                 if ev.code in CONSUMER_KEYS_EVENT_TO_USAGE_FLAG_MAPPING:
                     if ev.value == 1:  # down
@@ -167,8 +169,9 @@ class CompatibilityModeDevice:
                         if ev.code in self.pressed_consumer_keys:
                             self.pressed_consumer_keys.remove(ev.code)
                     self.__send_consumer_hid_report()
-                else: #normal keys
-                    if ev.code not in NORMAL_KEYS_EVENT_TO_USAGE_FLAG_MAPPING and ev.code not in MODIFIER_KEYS_EVENT_TO_USAGE_FLAG_MAPPING: continue
+                else:  # normal keys
+                    if ev.code not in NORMAL_KEYS_EVENT_TO_USAGE_FLAG_MAPPING and ev.code not in MODIFIER_KEYS_EVENT_TO_USAGE_FLAG_MAPPING:
+                        continue
                     if ev.value == 1:  # down
                         if ev.code not in self.pressed_keys:
                             self.pressed_keys.append(ev.code)
@@ -178,13 +181,15 @@ class CompatibilityModeDevice:
                     self.__send_normal_hid_report()
 
     def __send_consumer_hid_report(self):
-        report = bytearray(b'\x02\x80') #first byte - report id 2, second byte - consumer key flags and one bit is constant (0x80)
+        # first byte - report id 2, second byte - consumer key flags and one bit is constant (0x80)
+        report = bytearray(b'\x02\x80')
         for code in self.pressed_consumer_keys:
             report[1] = report[1] | CONSUMER_KEYS_EVENT_TO_USAGE_FLAG_MAPPING[code]
         self.hidraw_device.call_input_event(report)
 
     def __send_normal_hid_report(self):
-        report = bytearray(b'\x01\x00\x00\x00\x00\x00\x00\x00\x00') #first byte - report id 1, then 1 byte with modifier key flags, then const byte with 0, then 6 bytes with up to 6 keycodes (0 to 109)
+        # first byte - report id 1, then 1 byte with modifier key flags, then const byte with 0, then 6 bytes with up to 6 keycodes (0 to 109)
+        report = bytearray(b'\x01\x00\x00\x00\x00\x00\x00\x00\x00')
         key_index = 3
         for code in self.pressed_keys:
             if code in MODIFIER_KEYS_EVENT_TO_USAGE_FLAG_MAPPING:
@@ -192,7 +197,8 @@ class CompatibilityModeDevice:
             else:
                 report[key_index] = NORMAL_KEYS_EVENT_TO_USAGE_FLAG_MAPPING[code]
                 key_index += 1
-                if key_index > 8: break
+                if key_index > 8:
+                    break
 
         self.hidraw_device.call_input_event(report)
 
@@ -200,13 +206,13 @@ class CompatibilityModeDevice:
         return self.device_path == other.device_path
 
     def finalise(self):
-        #close device
+        # close device
         self.hidraw_device.destroy()
         self.hidraw_device = None
         self.ev_device.ungrab()
         self.ev_device.close()
         self.ev_device = None
-        print("Compatibility Device ",self.device_path," finalised")
+        print("Compatibility Device ", self.device_path, " finalised")
 
     def __del__(self):
-        print("Compatibility Device ",self.device_path," removed")
+        print("Compatibility Device ", self.device_path, " removed")

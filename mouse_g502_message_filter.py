@@ -50,4 +50,3 @@ class G502MessageFilter(MouseMessageFilter):
 
     def __init__(self):
         self.message_size = 8
-
