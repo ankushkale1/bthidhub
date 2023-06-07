@@ -1,6 +1,6 @@
 cd /home/pi/bthidhub/install/on_rpi
 
-sudo echo 0 | sudo tee /sys/class/leds/led0/brightness > /dev/null
+sudo echo 0 | sudo tee /sys/class/leds/led0/brightness >/dev/null
 
 sudo apt-get update -y | sudo apt-get upgrade -y
 
@@ -11,12 +11,12 @@ systemctl --user disable pulseaudio.service
 systemctl --user mask pulseaudio.socket
 systemctl --user mask pulseaudio.service
 
-sudo systemctl  stop pulseaudio.socket
-sudo systemctl  stop pulseaudio.service
-sudo systemctl  disable pulseaudio.socket
-sudo systemctl  disable pulseaudio.service
-sudo systemctl  mask pulseaudio.socket
-sudo systemctl  mask pulseaudio.service
+sudo systemctl stop pulseaudio.socket
+sudo systemctl stop pulseaudio.service
+sudo systemctl disable pulseaudio.socket
+sudo systemctl disable pulseaudio.service
+sudo systemctl mask pulseaudio.socket
+sudo systemctl mask pulseaudio.service
 
 systemctl --user stop obex
 systemctl --user disable obex
@@ -29,11 +29,11 @@ sudo pip3 install asyncio
 sudo pip3 install asyncio_glib
 sudo pip3 install evdev
 sudo pip3 install PyGObject
-sudo pip3 install aiohttp>=3.8
+sudo pip3 install aiohttp >=3.8
 sudo pip3 install aiohttp-security
 sudo pip3 install aiohttp-session
 sudo pip3 install watchgod
-sudo pip3 install hid-tools
+sudo pip3 install hid-tools==0.2
 sudo pip3 install pyudev
 sudo pip3 install bitarray
 
