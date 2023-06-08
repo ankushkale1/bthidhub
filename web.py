@@ -9,6 +9,7 @@ import asyncio
 import concurrent.futures
 import sys
 import subprocess
+import logging
 
 from aiohttp_session import SimpleCookieStorage, session_middleware
 from aiohttp_security import check_authorized, \
@@ -38,6 +39,7 @@ class PiAuthorizationPolicy(AbstractAuthorizationPolicy):
 
 class Web:
     def __init__(self, loop: asyncio.AbstractEventLoop, adapter, bluetooth_devices: BluetoothDeviceRegistry, hid_devices: HIDDeviceRegistry):
+        self.logger = logging.getLogger(__class__.__name__)
         self.loop = loop
         self.adapter = adapter
         self.adapter.set_on_agent_action_handler(self.on_agent_action)
@@ -231,17 +233,17 @@ class Web:
                     elif data['msg'] == 'connect':
                         self.ws.append(ws)
                         await ws.send_json({'msg': 'connected'})
-                        print('websocket connection opened')
+                        self.logger.debug("websocket connection opened")
                     elif data['msg'] == 'cancel_pairing':
                         self.adapter.cancel_pairing(data['device'])
                     elif data['msg'] == 'request_confirmation_response':
                         self.adapter.agent_request_confirmation_response(
                             data['device'], data['passkey'], data['confirmed'])
                     elif data['msg'] == 'pair_device':
-                        print("pairing")
+                        self.logger.debug("pairing")
                         self.loop.run_in_executor(
                             self.executor, self.adapter.device_action, 'pair', data['device'])
-                        print("pairing end")
+                        self.logger.debug("pairing end")
                     elif data['msg'] == 'connect_device':
                         self.loop.run_in_executor(
                             self.executor, self.adapter.device_action, 'connect', data['device'])
@@ -255,7 +257,6 @@ class Web:
                         pass
                         # await ws.send_json({'msg':'connected'})
             elif msg.type == web.WSMsgType.ERROR:
-                print('ws connection closed with exception %s' %
-                      ws.exception())
-        print('websocket connection closed')
+                self.logger.error(f"ws connection closed with exception {ws.exception()}")
+        self.logger.debug("websocket connection closed")
         return ws

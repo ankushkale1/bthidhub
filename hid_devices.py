@@ -8,13 +8,11 @@ import asyncio
 import evdev
 import time
 from hid_message_filter import HIDMessageFilter
-from a1314_message_filter import A1314MessageFilter
-from mouse_g502_message_filter import G502MessageFilter
-from mouse_mx510_message_filter import MX510MessageFilter
 from mouse_message_filter import MouseMessageFilter
 from combo_sk8845_message_filter import SK8845MessageFilter
 from typing import Dict, List
 from compatibility_device import CompatibilityModeDevice
+import logging
 
 DEVICES_CONFIG_FILE_NAME = 'devices_config.json'
 DEVICES_CONFIG_COMPATIBILITY_DEVICE_KEY = 'compatibility_devices'
@@ -24,24 +22,19 @@ FILTER_ELEMENT = 'filter'
 FILTERS = [
     {"id": "Default", "name": "Default"},
     {"id": "Mouse", "name": "Mouse"},
-    # {"id":"A1314", "name":"A1314"},
-    # {"id":"G502", "name":"G502"},
-    # {"id":"MX510", "name":"MX510"},
     {"id": "SK-8845", "name": "SK-8845"}
 ]
 
 FILTER_INSTANCES = {
     "Default": HIDMessageFilter(),
     "Mouse": MouseMessageFilter(),
-    # "A1314":A1314MessageFilter(),
-    # "G502":G502MessageFilter(),
-    # "MX510":MX510MessageFilter(),
     "SK-8845": SK8845MessageFilter()
 }
 
 
 class HIDDevice:
     def __init__(self, device, filter, loop: asyncio.AbstractEventLoop, device_registry):
+        self.logger = logging.getLogger(__class__.__name__)
         self.loop = loop
         self.filter = filter
         self.device_registry = device_registry
@@ -58,7 +51,7 @@ class HIDDevice:
         self.hidraw_file = os.open(
             '/dev/'+self.hidraw, os.O_RDWR | os.O_NONBLOCK)
         loop.add_reader(self.hidraw_file, self.hidraw_event)
-        print("HID Device ", self.device_id, " created")
+        self.logger.debug(f"HID Device {self.device_id} created")
 
     def set_device_filter(self, filter):
         self.filter = filter
@@ -73,7 +66,7 @@ class HIDDevice:
             self.loop.remove_reader(self.hidraw_file)
             os.close(self.hidraw_file)
             self.hidraw_file = None
-            print("HID device ", self.device_id, " exception on read. closing")
+            self.logger.debug(f"HID device {self.device_id} exception on read. closing")
             return
         tm = self.filter.filter_message_to_host(msg)
         if tm is None or self.device_registry.bluetooth_devices is None:
@@ -129,10 +122,10 @@ class HIDDevice:
             self.hidraw_file = None
         except:
             pass
-        print("HID Device ", self.device_id, " finalised")
+        self.logger.debug(f"HID Device {self.device_id} finalised")
 
     def __del__(self):
-        print("HID Device ", self.device_id, " removed")
+        self.logger.debug(f"HID Device {self.device_id} removed")
 
 
 class DeviceDirWatcher(AllWatcher):
@@ -142,6 +135,7 @@ class DeviceDirWatcher(AllWatcher):
 
 class HIDDeviceRegistry:
     def __init__(self, loop: asyncio.AbstractEventLoop):
+        self.logger = logging.getLogger(__class__.__name__)
         self.loop = loop
         if os.path.exists(DEVICES_CONFIG_FILE_NAME):
             with open(DEVICES_CONFIG_FILE_NAME, 'r') as devices_config:
@@ -230,8 +224,7 @@ class HIDDeviceRegistry:
                     if compatibility_mode:
                         devs_in_compatibility_mode.append(device)
             except Exception as exc:
-                print("Error while loading HID device: ",
-                      device, ", Error: ", exc, ", Skipping.")
+                self.logger.error(f"Error while loading HID device: {device}, Error: {exc}, Skipping.")
         devs_to_remove = []
         for dev in self.capturing_devices:
             if dev not in devs_dict or not self.__is_configured_capturing_device(devs_dict[dev]) or dev in devs_in_compatibility_mode:

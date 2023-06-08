@@ -8,6 +8,7 @@ from hid_devices import *
 from mouse import *
 from web import Web
 from datetime import datetime, timedelta
+import logging
 
 DBUS_PATH_PROFILE = '/ruundii/btkb_profile'
 DBUS_PATH_AGENT = '/ruundii/btkb_agent'
@@ -22,6 +23,7 @@ UUID = '00001124-0000-1000-8000-00805f9b34fb'
 
 class BluetoothAdapter:
     def __init__(self, bus: SystemMessageBus, loop: asyncio.AbstractEventLoop, bluetooth_devices: BluetoothDeviceRegistry, hid_devices: HIDDeviceRegistry):
+        self.logger = logging.getLogger(__class__.__name__)
         self.bus = bus
         self.loop = loop
         self.bluetooth_devices = bluetooth_devices
@@ -58,7 +60,7 @@ class BluetoothAdapter:
 
     async def wait_bt_service_run(self):
         while not self.bt_service_running():
-            print("No BT service. Waiting...")
+            self.logger.debug("No BT service. Waiting...")
             await asyncio.sleep(2)
 
     def adapter_exists(self):
@@ -78,7 +80,7 @@ class BluetoothAdapter:
 
     async def wait_till_adapter_present_then_init(self):
         while not self.adapter_exists():
-            print("No BT adapter. Waiting...")
+            self.logger.debug("No BT adapter. Waiting...")
             await asyncio.sleep(2)
 
         self.register_agent()
@@ -86,15 +88,15 @@ class BluetoothAdapter:
                                           interface_name="org.bluez.Adapter1")
 
         while not self.powered:
-            print("Bluetooth adapter is turned off. Trying to turn on")
+            self.logger.info("Bluetooth adapter is turned off. Trying to turn on")
             try:
                 self.powered = True
                 if (self.powered):
-                    print("Successfully turned on")
+                    self.logger.info("Successfully turned on")
                 else:
-                    print("Failed to turn on. Please turn on Bluetooth in the system")
+                    self.logger.info("Failed to turn on. Please turn on Bluetooth in the system")
             except Exception:
-                print("Failed to turn on. Please turn on Bluetooth in the system")
+                self.logger.error("Failed to turn on. Please turn on Bluetooth in the system")
             await asyncio.sleep(2)
 
         self.alias = DEVICE_NAME
@@ -107,7 +109,7 @@ class BluetoothAdapter:
         if not self.adapter_exists():
             return
         if (obj_name == ADAPTER_OBJECT or obj_name == ROOT_OBJECT):
-            print("Bluetooth adapter added. Starting")
+            self.logger.info("Bluetooth adapter added. Starting")
             self.wait_till_adapter_present_then_init_sync()
 
         elif INPUT_HOST_INTERFACE in interfaces:
@@ -120,7 +122,7 @@ class BluetoothAdapter:
         if (obj_name == ADAPTER_OBJECT or obj_name == ROOT_OBJECT):
             self.adapter = None
             self.bluetooth_devices.remove_devices()
-            print("Bluetooth adapter removed. Stopping")
+            self.logger.info("Bluetooth adapter removed. Stopping")
             asyncio.run_coroutine_threadsafe(self.init(), loop=self.loop)
         elif INPUT_HOST_INTERFACE in interfaces or INPUT_DEVICE_INTERFACE in interfaces:
             self.bluetooth_devices.remove_device(obj_name)
@@ -136,7 +138,7 @@ class BluetoothAdapter:
                                                interface_name="org.bluez.AgentManager1")
             agent_manager.RegisterAgent(DBUS_PATH_AGENT, "KeyboardDisplay")
             agent_manager.RequestDefaultAgent(DBUS_PATH_AGENT)
-            print("Agent registered")
+            self.logger.info("Agent registered")
 
     def start_scan(self):
         if self.adapter is not None:
@@ -226,7 +228,7 @@ class BluetoothAdapter:
             elif action == 'disconnect':
                 dp.Disconnect()
         except Exception as exc:
-            print(exc)
+            self.logger.error(f"{exc}")
         self.on_interface_changed()
 
     def remove_device(self, device_path):
@@ -235,7 +237,7 @@ class BluetoothAdapter:
         try:
             self.adapter.RemoveDevice(device_path)
         except Exception as exc:
-            print(exc)
+            self.logger.error(f"{exc}")
 
     def cancel_pairing(self, device_path):
         if self.adapter is None:

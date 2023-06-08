@@ -1,11 +1,13 @@
 from hid_message_filter import HIDMessageFilter
 from keycodes import *
+import logging
 
 # IBM SK-8845 filter
 
 
 class SK8845MessageFilter(HIDMessageFilter):
     def __init__(self):
+        self.logger = logging.getLogger(__class__.__name__)
         self.byteorder = "little"
         self.signed = True
         self.keyboard_buf = bytes([0 for _ in range(10)])
@@ -82,7 +84,7 @@ class SK8845MessageFilter(HIDMessageFilter):
                 0 != (msg_in_int & BYTES_VOLUME_DOWN), KEY_VOLUMEDOWN)
             self.handle_key(0 != (msg_in_int & BYTES_VOLUME_MUTE), KEY_MUTE)
             return self.keyboard_buf
-        print("unrecognized pattern")
+        self.logger.warning("unrecognized pattern")
         return None
 
     def get_buttons_flags(self, msg):
