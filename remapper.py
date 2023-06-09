@@ -10,10 +10,9 @@ import logging.config
 import asyncio_glib
 from dasbus.connection import SystemMessageBus
 
-from adapter import BluetoothAdapter
 from bluetooth_devices import *
 from hid_devices import *
-from web import Web
+from web import Web, BluetoothAdapter
 
 if __name__ == "__main__":
     server_config = json.load(open("logger_config.json", "r"))
