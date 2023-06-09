@@ -30,6 +30,3 @@ if __name__ == "__main__":
     adapter = BluetoothAdapter(bus, loop, bluetooth_devices, hid_devices)
     web = Web(loop, adapter, bluetooth_devices, hid_devices)
     loop.run_forever()
-
-
-# print(proxy)
