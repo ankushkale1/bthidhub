@@ -77,10 +77,12 @@ class BluetoothDevice:
             self.interrupt_socket.setblocking(False)
             self.sockets_connected = True
             if (self.is_host):
+                self.logger.debug(f"self is host")
                 self.device_registry.connected_hosts.append(self)
                 addr = self.object_path[-17:].replace("_", ":")
                 # asyncio.create_task(self.device_registry.switch_to_master(addr))
             else:
+                self.logger.debug(f"self is device")
                 self.device_registry.connected_devices.append(self)
             self.logger.info(f"Connected sockets for {self.object_path}")
             asyncio.run_coroutine_threadsafe(
@@ -203,6 +205,7 @@ class BluetoothDeviceRegistry:
 
     def add_device(self, device_object_path: str, is_host: bool):
         if (IGNORE_INPUT_DEVICES and not is_host):
+            self.logger.debug(f"Add device: ignore {device_object_path} because IGNORE_INPUT_DEVICES and is not host")
             return
 
         if device_object_path in self.all:
@@ -212,6 +215,7 @@ class BluetoothDeviceRegistry:
         # asyncio.ensure_future(self.switch_to_master(device_object_path[-17:].replace("_",":")))
         p = self.bus.get_proxy(service_name="org.bluez", object_path=device_object_path,
                                interface_name=INPUT_HOST_INTERFACE if is_host else INPUT_DEVICE_INTERFACE)
+        self.logger.debug(f"Add device (object path: {device_object_path}, is host: {is_host})")
         device = BluetoothDevice(
             self.bus, self.loop, self, device_object_path, is_host, p.SocketPathCtrl, p.SocketPathIntr)
         self.all[device_object_path] = device
@@ -256,17 +260,20 @@ class BluetoothDeviceRegistry:
             self.current_host_index + 1) % len(self.connected_hosts)
 
     def __get_current_host_as_list(self):
+        self.logger.debug(f"current_host_index {self.current_host_index}")
+        self.logger.debug(f"connected_hosts {self.connected_hosts}")
         if len(self.connected_hosts) <= self.current_host_index:
             return []
         return [self.connected_hosts[self.current_host_index]]
 
     def send_message(self, msg, send_to_hosts, is_control_channel):
+        self.logger.debug(f"send_message: send_to_hosts: {send_to_hosts} is_control_channel: {is_control_channel}")
         if IGNORE_INPUT_DEVICES and not send_to_hosts and not is_control_channel and self.hid_devices is not None:
             asyncio.run_coroutine_threadsafe(
                 self.hid_devices.send_message_to_devices(msg), loop=self.loop)
             return
-        targets: List[BluetoothDevice] = self.__get_current_host_as_list(
-        ) if send_to_hosts else self.connected_devices
+        targets: List[BluetoothDevice] = self.__get_current_host_as_list() if send_to_hosts else self.connected_devices
+        self.logger.debug(f"targets: {targets}")
         for target in list(targets):
             try:
                 socket = target.control_socket if is_control_channel else target.interrupt_socket

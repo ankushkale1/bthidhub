@@ -111,6 +111,7 @@ class BluetoothAdapter:
         self.initialising_adapter = False
 
     def interfaces_added(self, obj_name, interfaces):
+        # self.logger.debug(f"interfaces_added {obj_name} {interfaces}")
         self.on_interface_changed()
         if not self.adapter_exists():
             return
@@ -119,12 +120,15 @@ class BluetoothAdapter:
             self.wait_till_adapter_present_then_init_sync()
 
         elif INPUT_HOST_INTERFACE in interfaces:
+            self.logger.debug(f"{INPUT_HOST_INTERFACE} in interfaces")
             self.bluetooth_devices.add_device(obj_name, True)
 
         elif INPUT_DEVICE_INTERFACE in interfaces:
+            self.logger.debug(f"{INPUT_DEVICE_INTERFACE} in interfaces")
             self.bluetooth_devices.add_device(obj_name, False)
 
     def interfaces_removed(self, obj_name, interfaces):
+        # self.logger.debug(f"interfaces_removed {obj_name} {interfaces}")
         if (obj_name == ADAPTER_OBJECT or obj_name == ROOT_OBJECT):
             self.adapter = None
             self.bluetooth_devices.remove_devices()
@@ -170,6 +174,7 @@ class BluetoothAdapter:
 
     def start_discoverable(self):
         if self.adapter is not None:
+            self.logger.debug("Start discoverable")
             self.discoverable_start_time = datetime.now()
             self.discoverable = True
             self.discoverable_timeout = 0
@@ -178,6 +183,7 @@ class BluetoothAdapter:
 
     def stop_discoverable(self):
         if self.adapter is not None:
+            self.logger.debug("Stop discoverable")
             self.discoverable = False
 
     async def __shutdown_discoverable(self):
