@@ -1,2 +1,8 @@
 /commands
 .idea
+**/*.o
+**/*.lo
+**/*.la
+**/*.log
+**/.deps/*
+**/.dirstamp
