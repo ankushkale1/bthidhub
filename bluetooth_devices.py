@@ -16,7 +16,15 @@ IGNORE_INPUT_DEVICES = True
 
 
 class BluetoothDevice:
-    def __init__(self, bus: SystemMessageBus, loop: asyncio.AbstractEventLoop,  device_registry, object_path, is_host,  control_socket_path, interrupt_socket_path):
+    def __init__(self,
+                 bus: SystemMessageBus,
+                 loop: asyncio.AbstractEventLoop,
+                 device_registry,
+                 object_path: str,
+                 is_host: bool,
+                 control_socket_path,
+                 interrupt_socket_path):
+
         self.device = bus.get_proxy(
             service_name="org.bluez", object_path=object_path, interface_name=DEVICE_INTERFACE)
         self.props = bus.get_proxy(
@@ -192,7 +200,7 @@ class BluetoothDeviceRegistry:
             elif INPUT_DEVICE_INTERFACE in objs[obj]:
                 self.add_device(obj, False)
 
-    def add_device(self, device_object_path, is_host):
+    def add_device(self, device_object_path: str, is_host: bool):
         if (IGNORE_INPUT_DEVICES and not is_host):
             return
 

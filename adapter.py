@@ -21,14 +21,19 @@ UUID = '00001124-0000-1000-8000-00805f9b34fb'
 
 
 class BluetoothAdapter:
-    def __init__(self, bus: SystemMessageBus, loop: asyncio.AbstractEventLoop, bluetooth_devices: BluetoothDeviceRegistry, hid_devices: HIDDeviceRegistry):
+    def __init__(self,
+                 bus: SystemMessageBus,
+                 loop: asyncio.AbstractEventLoop,
+                 bluetooth_devices: BluetoothDeviceRegistry,
+                 hid_devices: HIDDeviceRegistry):
+
         self.bus = bus
         self.loop = loop
         self.bluetooth_devices = bluetooth_devices
         self.hid_devices = hid_devices
         self.mouse = Mouse(self.loop, self.bluetooth_devices)
         self.agent_published = False
-        self.agent = None
+        self.agent: Agent = None
         self.om_proxy_initialised = False
         self.initialising_adapter = False
         self.scan_start_time = None

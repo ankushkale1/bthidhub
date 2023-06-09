@@ -4,6 +4,7 @@ from aiohttp import web, WSMessage
 from password import *
 import json
 from hid_devices import *
+from adapter import BluetoothAdapter
 from bluetooth_devices import *
 import asyncio
 import concurrent.futures
@@ -37,7 +38,12 @@ class PiAuthorizationPolicy(AbstractAuthorizationPolicy):
 
 
 class Web:
-    def __init__(self, loop: asyncio.AbstractEventLoop, adapter, bluetooth_devices: BluetoothDeviceRegistry, hid_devices: HIDDeviceRegistry):
+    def __init__(self,
+                 loop: asyncio.AbstractEventLoop,
+                 adapter: BluetoothAdapter,
+                 bluetooth_devices: BluetoothDeviceRegistry,
+                 hid_devices: HIDDeviceRegistry):
+
         self.loop = loop
         self.adapter = adapter
         self.adapter.set_on_agent_action_handler(self.on_agent_action)
