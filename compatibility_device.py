@@ -1,8 +1,8 @@
+import asyncio
+import logging
+from typing import List
 from evdev import *
 from hidtools.uhid import UHIDDevice
-import asyncio
-from typing import List
-import logging
 
 CONSUMER_KEYS_EVENT_TO_USAGE_FLAG_MAPPING = {
     ecodes.KEY_NEXTSONG: 0x01,  # Usage (Scan Next Track)

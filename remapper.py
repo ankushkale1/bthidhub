@@ -6,12 +6,11 @@ from signal import SIGINT
 import json
 import logging
 import logging.config
-
 import asyncio_glib
-from dasbus.connection import SystemMessageBus
 
-from bluetooth_devices import *
-from hid_devices import *
+from dasbus.connection import SystemMessageBus
+from bluetooth_devices import BluetoothDeviceRegistry
+from hid_devices import HIDDeviceRegistry
 from web import Web, BluetoothAdapter
 
 if __name__ == "__main__":
@@ -31,6 +30,3 @@ if __name__ == "__main__":
     adapter = BluetoothAdapter(bus, loop, bluetooth_devices, hid_devices)
     web = Web(loop, adapter, bluetooth_devices, hid_devices)
     loop.run_forever()
-
-
-# print(proxy)

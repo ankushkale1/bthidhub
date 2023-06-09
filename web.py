@@ -1,22 +1,20 @@
 # Copyright (c) 2020 ruundii. All rights reserved.
 
-from aiohttp import web, WSMessage
-from password import *
-import json
-from hid_devices import *
-from adapter import BluetoothAdapter
-from bluetooth_devices import *
 import asyncio
 import concurrent.futures
 import sys
 import subprocess
 import logging
-
+import json
+from aiohttp import web
 from aiohttp_session import SimpleCookieStorage, session_middleware
-from aiohttp_security import check_authorized, \
-    is_anonymous, authorized_userid, remember, forget, \
-    setup as setup_security, SessionIdentityPolicy
+from aiohttp_security import check_authorized, remember, setup as setup_security, SessionIdentityPolicy
 from aiohttp_security.abc import AbstractAuthorizationPolicy
+
+from password import is_valid_current_password, set_new_password
+from hid_devices import HIDDeviceRegistry
+from adapter import BluetoothAdapter
+from bluetooth_devices import BluetoothDeviceRegistry
 
 PI_USER = 'pi'
 

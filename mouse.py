@@ -3,7 +3,8 @@
 import evdev
 import os
 import asyncio
-from bluetooth_devices import *
+
+from bluetooth_devices import BluetoothDeviceRegistry
 
 mouse_raw_device = '/dev/hidraw4'
 mouse_event_device = '/dev/input/event18'

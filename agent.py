@@ -1,11 +1,9 @@
 # Copyright (c) 2020 ruundii. All rights reserved.
 
+import logging
 import dasbus.typing as dt
 from dasbus.server.interface import dbus_interface
 from dasbus.connection import SystemMessageBus
-from datetime import datetime, timedelta
-import asyncio
-import logging
 
 bus = SystemMessageBus()
 
@@ -78,6 +76,7 @@ class Agent(object):
             passkey).zfill(6), 'device': device})
 
     def request_confirmation_response(self, device, passkey, confirmed):
+        self.logger.info(f"request_confirmation_response {device} {passkey} {confirmed}")
         if self.request_confirmation_device == device and passkey == self.request_confirmation_passkey and confirmed:
             set_trusted(device)
         else:
