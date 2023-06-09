@@ -747,6 +747,12 @@ gboolean device_is_trusted(struct btd_device *device)
 	return device->trusted;
 }
 
+bool device_is_svc_resolved(struct btd_device *device)
+{
+    return (device->bredr_state.svc_resolved || device->le_state.svc_resolved);
+}
+
+
 static gboolean dev_property_get_address(const GDBusPropertyTable *property,
 					DBusMessageIter *iter, void *data)
 {
@@ -4250,7 +4256,7 @@ static gboolean device_disappeared(gpointer user_data)
 
 	dev->temporary_timer = 0;
 
-	btd_adapter_remove_device(dev->adapter, dev);
+    btd_adapter_remove_device(dev->adapter, dev);
 
 	return FALSE;
 }
