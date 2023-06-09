@@ -38,8 +38,9 @@ sudo pip3 install pyudev
 sudo pip3 install bitarray
 
 cd /home/pi/bthidhub/install/on_rpi
-git clone https://github.com/ruundii/bluez
+git clone https://github.com/bluez/bluez.git
 cd /home/pi/bthidhub/install/on_rpi/bluez
+git checkout e170ce6fba549287cffa81bd52b62c4555c00722
 autoreconf -fvi
 
 ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var --disable-a2dp --disable-avrcp --disable-network

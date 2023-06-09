@@ -2,6 +2,7 @@ from evdev import *
 from hidtools.uhid import UHIDDevice
 import asyncio
 from typing import List
+import logging
 
 CONSUMER_KEYS_EVENT_TO_USAGE_FLAG_MAPPING = {
     ecodes.KEY_NEXTSONG: 0x01,  # Usage (Scan Next Track)
@@ -139,6 +140,7 @@ NORMAL_KEYS_EVENT_TO_USAGE_FLAG_MAPPING = {
 
 class CompatibilityModeDevice:
     def __init__(self, loop: asyncio.AbstractEventLoop, device_path):
+        self.logger = logging.getLogger(__class__.__name__)
         self.device_path = device_path
         self.loop = loop
         self.ev_device = InputDevice(device_path)
@@ -155,12 +157,12 @@ class CompatibilityModeDevice:
 
         self.hidraw_device.create_kernel_device()
         asyncio.run_coroutine_threadsafe(self.__read_events(), self.loop)
-        print("Compatibility Device ", self.device_path, " initialised")
+        self.logger.debug("Compatibility Device ", self.device_path, " initialised")
 
     async def __read_events(self):
         async for ev in self.ev_device.async_read_loop():
             if ev.type == ecodes.EV_KEY and ev.value < 2:
-                print(categorize(ev))
+                self.logger.debug(categorize(ev))
                 if ev.code in CONSUMER_KEYS_EVENT_TO_USAGE_FLAG_MAPPING:
                     if ev.value == 1:  # down
                         if ev.code not in self.pressed_consumer_keys:
@@ -212,7 +214,7 @@ class CompatibilityModeDevice:
         self.ev_device.ungrab()
         self.ev_device.close()
         self.ev_device = None
-        print("Compatibility Device ", self.device_path, " finalised")
+        self.logger.debug("Compatibility Device ", self.device_path, " finalised")
 
     def __del__(self):
-        print("Compatibility Device ", self.device_path, " removed")
+        self.logger.debug("Compatibility Device ", self.device_path, " removed")

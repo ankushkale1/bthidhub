@@ -5,6 +5,7 @@ import asyncio
 import socket
 from typing import List
 import os
+import logging
 
 OBJECT_MANAGER_INTERFACE = 'org.freedesktop.DBus.ObjectManager'
 DEVICE_INTERFACE = 'org.bluez.Device1'
@@ -25,6 +26,7 @@ class BluetoothDevice:
                  control_socket_path,
                  interrupt_socket_path):
 
+        self.logger = logging.getLogger(__class__.__name__)
         self.device = bus.get_proxy(
             service_name="org.bluez", object_path=object_path, interface_name=DEVICE_INTERFACE)
         self.props = bus.get_proxy(
@@ -43,7 +45,7 @@ class BluetoothDevice:
         self.interrupt_socket = None
         self.sockets_connected = False
 
-        print("BT Device ", object_path, " created")
+        self.logger.info(f"BT Device {object_path} created")
         asyncio.run_coroutine_threadsafe(
             self.reconcile_connected_state(1), loop=self.loop)
 
@@ -55,14 +57,14 @@ class BluetoothDevice:
             elif not self.connected and self.sockets_connected:
                 self.disconnect_sockets()
         except Exception as exc:
-            print("Possibly dbus error during reconcile_connected_state ", exc)
+            self.logger.error(f"Possibly dbus error during reconcile_connected_state {exc}")
 
     async def connect_sockets(self):
         if self.sockets_connected or self.control_socket_path is None or self.interrupt_socket_path is None:
             return
-        print("Connecting sockets for ", self.object_path)
+        self.logger.info(f"Connecting sockets for {self.object_path}")
         if not self.connected:
-            print("BT Device is not connected. No point connecting sockets. Skipping.")
+            self.logger.info("BT Device is not connected. No point connecting sockets. Skipping.")
         try:
             self.control_socket = socket.socket(
                 socket.AF_UNIX, socket.SOCK_SEQPACKET)
@@ -80,14 +82,13 @@ class BluetoothDevice:
                 # asyncio.create_task(self.device_registry.switch_to_master(addr))
             else:
                 self.device_registry.connected_devices.append(self)
-            print("Connected sockets for ", self.object_path)
+            self.logger.info(f"Connected sockets for {self.object_path}")
             asyncio.run_coroutine_threadsafe(
                 self.loop_of_fun(True), loop=self.loop)
             asyncio.run_coroutine_threadsafe(
                 self.loop_of_fun(False), loop=self.loop)
         except Exception as err:
-            print("Error while connecting sockets for ",
-                  self.object_path, ". Will retry in a sec", err)
+            self.logger.error(f"Error while connecting sockets for {self.object_path}. Will retry in a sec {err}")
             try:
                 self.control_socket.close()
                 self.interrupt_socket.close()
@@ -110,7 +111,7 @@ class BluetoothDevice:
             self.device_registry.connected_devices.remove(self)
         self.sockets_connected = False
 
-        print("Disconnected  sockets for ", self.object_path)
+        self.logger.info(f"Disconnected  sockets for {self.object_path}")
 
     async def loop_of_fun(self, is_ctrl):
         sock = self.control_socket if is_ctrl else self.interrupt_socket
@@ -118,14 +119,13 @@ class BluetoothDevice:
             try:
                 msg = await self.loop.sock_recv(sock, 255)
             except Exception:
-                print("Cannot read data from socket. ",
-                      self.object_path, "Closing sockets")
+                self.logger.error(f"Cannot read data from socket. {self.object_path} Closing sockets")
                 if self is not None:
                     try:
                         self.disconnect_sockets()
                     except:
-                        print("Error while disconnecting sockets")
-                print("Arranging reconnect")
+                        self.logger.error("Error while disconnecting sockets")
+                self.logger.error("Arranging reconnect")
                 asyncio.run_coroutine_threadsafe(
                     self.reconcile_connected_state(1), loop=self.loop)
                 break
@@ -150,7 +150,7 @@ class BluetoothDevice:
         return self.object_path == other.object_path
 
     def device_connected_state_changed(self, arg1, arg2, arg3):
-        print("device_connected_state_changed")
+        self.logger.debug("device_connected_state_changed")
         asyncio.run_coroutine_threadsafe(
             self.reconcile_connected_state(1), loop=self.loop)
         if self.device_registry.on_devices_changed_handler is not None:
@@ -164,14 +164,15 @@ class BluetoothDevice:
         self.interrupt_socket_path = None
         # close sockets
         self.disconnect_sockets()
-        print("BT Device ", self.object_path, " finalised")
+        self.logger.debug(f"BT Device {self.object_path} finalised")
 
     def __del__(self):
-        print("BT Device ", self.object_path, " removed")
+        self.logger.debug(f"BT Device {self.object_path} removed")
 
 
 class BluetoothDeviceRegistry:
     def __init__(self, bus: SystemMessageBus, loop: asyncio.AbstractEventLoop):
+        self.logger = logging.getLogger(__class__.__name__)
         self.bus = bus
         self.loop = loop
         self.all = {}
@@ -188,7 +189,7 @@ class BluetoothDeviceRegistry:
         self.on_devices_changed_handler = handler
 
     def add_devices(self):
-        print("Adding all BT devices")
+        self.logger.debug("Adding all BT devices")
         om = self.bus.get_proxy(
             service_name="org.bluez", object_path="/", interface_name=OBJECT_MANAGER_INTERFACE)
         objs = om.GetManagedObjects()
@@ -205,8 +206,7 @@ class BluetoothDeviceRegistry:
             return
 
         if device_object_path in self.all:
-            print("Device ", device_object_path,
-                  " already exist. Cannot add. Skipping.")
+            self.logger.warning(f"Device {device_object_path} already exist. Cannot add. Skipping.")
             return
         # ensure master role for this connection, otherwise latency of sending packets to hosts may get pretty bad
         # asyncio.ensure_future(self.switch_to_master(device_object_path[-17:].replace("_",":")))
@@ -217,14 +217,14 @@ class BluetoothDeviceRegistry:
         self.all[device_object_path] = device
 
     async def switch_to_master(self, device_address):
-        print("switch to master called for ", device_address)
+        self.logger.debug(f"switch to master called for {device_address}")
         while self.is_slave(device_address):
             try:
                 success = os.system("sudo hcitool sr " +
                                     device_address + " MASTER") == 0
-                print("hcitool ", device_address, " success:", success)
+                self.logger.debug(f"hcitool {device_address} success: {success}")
             except Exception as exc:
-                print("hcitool ", device_address, " exception:", exc)
+                self.logger.error(f"hcitool {device_address} exception: {exc}")
             await asyncio.sleep(5)
 
     def is_slave(self, device_address):
@@ -236,7 +236,7 @@ class BluetoothDeviceRegistry:
         return False
 
     def remove_devices(self):
-        print("Removing all BT devices")
+        self.logger.debug("Removing all BT devices")
         while len(self.all) > 0:
             self.remove_device(list(self.all)[0])
 
@@ -272,12 +272,12 @@ class BluetoothDeviceRegistry:
                 socket = target.control_socket if is_control_channel else target.interrupt_socket
                 socket.sendall(msg)
             except Exception:
-                print("Cannot send data to socket of ",
+                self.logger.error("Cannot send data to socket of ",
                       target.object_path, ". Closing")
                 if target is not None:
                     try:
                         target.disconnect_sockets()
                     except:
-                        print("Error while trying to disconnect sockets")
+                        self.logger.error("Error while trying to disconnect sockets")
                 asyncio.run_coroutine_threadsafe(
                     target.reconcile_connected_state(1), loop=self.loop)

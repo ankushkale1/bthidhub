@@ -5,6 +5,7 @@ from dasbus.server.interface import dbus_interface
 from dasbus.connection import SystemMessageBus
 from datetime import datetime, timedelta
 import asyncio
+import logging
 
 bus = SystemMessageBus()
 
@@ -28,16 +29,17 @@ def dev_connect(device_path):
 @dbus_interface("org.bluez.Agent1")
 class Agent(object):
     def __init__(self):
+        self.logger = logging.getLogger(__class__.__name__)
         self.on_agent_action_handler = None
         self.request_confirmation_device = None
         self.request_confirmation_passkey = None
 
     def Release(self):
         self.on_agent_action({'action': 'agent_released'})
-        print("Agent Release")
+        self.logger.info("Agent Release")
 
     def AuthorizeService(self, device: dt.ObjPath, uuid: dt.Str):
-        print("AuthorizeService (%s, %s)" % (device, uuid))
+        self.logger.info(f"AuthorizeService ({device}, {uuid})")
         set_trusted(device)
         self.on_agent_action({'action': 'service_autorised', 'device': device})
         # authorize = ask("Authorize connection (yes/no): ")
@@ -47,29 +49,29 @@ class Agent(object):
         # raise Exception("Connection rejected by user")
 
     def RequestPinCode(self, device: dt.ObjPath) -> dt.Str:
-        print("RequestPinCode (%s)" % (device))
+        self.logger.debug(f"RequestPinCode ({device})")
         set_trusted(device)
         return ask("Enter PIN Code: ")
 
     def RequestPasskey(self, device: dt.ObjPath) -> dt.UInt32:
-        print("RequestPasskey (%s)" % (device))
+        self.logger.debug(f"RequestPasskey ({device})")
         set_trusted(device)
         passkey = int(ask("Enter passkey: "))
         return dt.UInt32(passkey)
 
     def DisplayPasskey(self, device: dt.ObjPath, passkey: dt.UInt32, entered: dt.UInt16):
-        print("DisplayPasskey (%s, %06u entered %u)" %
+        self.logger.debug("DisplayPasskey (%s, %06u entered %u)" %
               (device, passkey, entered))
         self.on_agent_action({'action': 'display_passkey',
                              'passkey': passkey, 'device': device, 'entered': entered})
 
     def DisplayPinCode(self, device: dt.ObjPath, pincode: dt.Str):
-        print("DisplayPinCode (%s, %s)" % (device, pincode))
+        self.logger.debug(f"DisplayPinCode ({device}, {pincode})")
         self.on_agent_action(
             {'action': 'display_pin_code', 'pincode': pincode, 'device': device})
 
     def RequestConfirmation(self, device: dt.ObjPath, passkey: dt.UInt32):
-        print("RequestConfirmation (%s, %06d)" % (device, passkey))
+        self.logger.debug("RequestConfirmation (%s, %06d)" % (device, passkey))
         self.request_confirmation_device = device
         self.request_confirmation_passkey = str(passkey).zfill(6)
         self.on_agent_action({'action': 'confirm_passkey', 'passkey': str(
@@ -83,7 +85,7 @@ class Agent(object):
             self.request_confirmation_passkey = None
 
     def RequestAuthorization(self, device: dt.ObjPath):
-        print("RequestAuthorization (%s)" % (device))
+        self.logger.debug(f"RequestAuthorization ({device})")
         auth = ask("Authorize? (yes/no): ")
         if (auth == "yes"):
             return
@@ -91,7 +93,7 @@ class Agent(object):
 
     def Cancel(self):
         self.on_agent_action({'action': 'agent_cancel'})
-        print("Cancel")
+        self.logger.debug("Cancel")
 
     def on_agent_action(self, msg):
         if self.on_agent_action_handler is not None:
