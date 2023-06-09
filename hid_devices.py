@@ -3,16 +3,16 @@
 import os
 import re
 import json
-from watchgod import awatch, AllWatcher
 import asyncio
 import evdev
 import time
+import logging
+from watchgod import awatch, AllWatcher
+
 from hid_message_filter import HIDMessageFilter
 from mouse_message_filter import MouseMessageFilter
 from combo_sk8845_message_filter import SK8845MessageFilter
-from typing import Dict, List
 from compatibility_device import CompatibilityModeDevice
-import logging
 
 DEVICES_CONFIG_FILE_NAME = 'devices_config.json'
 DEVICES_CONFIG_COMPATIBILITY_DEVICE_KEY = 'compatibility_devices'

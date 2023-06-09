@@ -6,12 +6,11 @@ from signal import SIGINT
 import json
 import logging
 import logging.config
-
 import asyncio_glib
-from dasbus.connection import SystemMessageBus
 
-from bluetooth_devices import *
-from hid_devices import *
+from dasbus.connection import SystemMessageBus
+from bluetooth_devices import BluetoothDeviceRegistry
+from hid_devices import HIDDeviceRegistry
 from web import Web, BluetoothAdapter
 
 if __name__ == "__main__":

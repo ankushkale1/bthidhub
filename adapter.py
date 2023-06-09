@@ -1,13 +1,15 @@
 # Copyright (c) 2020 ruundii. All rights reserved.
 
-from dasbus.connection import SystemMessageBus
-from agent import Agent
-import dasbus.typing as dt
-from bluetooth_devices import *
-from hid_devices import *
-from mouse import *
-from datetime import datetime, timedelta
+import asyncio
 import logging
+from datetime import datetime, timedelta
+from dasbus.connection import SystemMessageBus
+import dasbus.typing as dt
+
+from agent import Agent
+from bluetooth_devices import BluetoothDeviceRegistry, INPUT_HOST_INTERFACE, INPUT_DEVICE_INTERFACE, DEVICE_INTERFACE, OBJECT_MANAGER_INTERFACE
+from hid_devices import HIDDeviceRegistry
+from mouse import Mouse
 
 DBUS_PATH_PROFILE = '/ruundii/btkb_profile'
 DBUS_PATH_AGENT = '/ruundii/btkb_agent'

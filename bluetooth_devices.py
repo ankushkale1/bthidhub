@@ -1,11 +1,11 @@
 # Copyright (c) 2020 ruundii. All rights reserved.
 
-from dasbus.connection import SystemMessageBus
 import asyncio
 import socket
-from typing import List
 import os
 import logging
+from typing import List
+from dasbus.connection import SystemMessageBus
 
 OBJECT_MANAGER_INTERFACE = 'org.freedesktop.DBus.ObjectManager'
 DEVICE_INTERFACE = 'org.bluez.Device1'

@@ -1,6 +1,7 @@
+import logging
+
 from hid_message_filter import HIDMessageFilter
 from keycodes import *
-import logging
 
 # IBM SK-8845 filter
 
