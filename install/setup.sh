@@ -39,10 +39,7 @@ sudo pip3 install hid-tools==0.2
 sudo pip3 install pyudev
 sudo pip3 install bitarray
 
-cd /home/pi/bthidhub/install
-git clone https://github.com/bluez/bluez.git
 cd /home/pi/bthidhub/install/bluez
-git checkout e170ce6fba549287cffa81bd52b62c4555c00722
 autoreconf -fvi
 
 ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var --disable-a2dp --disable-avrcp --disable-network
