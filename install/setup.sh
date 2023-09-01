@@ -38,6 +38,7 @@ sudo pip3 install watchgod
 sudo pip3 install hid-tools==0.2
 sudo pip3 install pyudev
 sudo pip3 install bitarray
+sudo pip3 install pydevd
 
 cd /home/pi/bthidhub/install/bluez
 autoreconf -fvi
