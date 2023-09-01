@@ -5,8 +5,9 @@ After=multi-user.target
 [Service]
 Type=simple
 ExecStart=/usr/bin/python3 -u /home/pi/bthidhub/remapper.py
-ExecStartPost=/usr/bin/bash -c 'echo none > /sys/class/leds/led0/trigger'
-ExecStopPost=/usr/bin/bash -c 'echo heartbeat > /sys/class/leds/led0/trigger'
+#ExecStartPost=/usr/bin/bash -c 'echo none > /sys/class/leds/ACT/brightness'
+#ExecStopPost=/usr/bin/bash -c 'echo heartbeat > /sys/class/leds/led0/trigger'
+#sudo echo 0 | sudo tee /sys/class/leds/ACT/brightness > /dev/null
 StandardOutput=file:/home/pi/bthidhub/stdout.log
 StandardError=file:/home/pi/bthidhub/stderr.log
 WorkingDirectory=/home/pi/bthidhub
