@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /home/pi/bthidhub/install
+cd /home/ankush/git/bthidhub/install
 
 sudo echo 0 | sudo tee /sys/class/leds/led0/brightness >/dev/null
 
@@ -40,7 +40,7 @@ sudo pip3 install pyudev
 sudo pip3 install bitarray
 sudo pip3 install pydevd
 
-cd /home/pi/bthidhub/install/bluez
+cd /home/ankush/git/bthidhub/install/bluez
 autoreconf -fvi
 
 ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var --disable-a2dp --disable-avrcp --disable-network
@@ -50,12 +50,12 @@ make -j4
 sudo systemctl disable bluetooth
 sudo systemctl stop bluetooth
 sudo make install
-sudo python3 /home/pi/bthidhub/install/config_replacer.py
-sudo cp /home/pi/bthidhub/install/sdp_record.xml /etc/bluetooth/sdp_record.xml
-sudo cp /home/pi/bthidhub/install/input.conf /etc/bluetooth/input.conf
-sudo cp /home/pi/bthidhub/install/main.conf /etc/bluetooth/main.conf
+sudo python3 /home/ankush/git/bthidhub/install/config_replacer.py
+sudo cp /home/ankush/git/bthidhub/install/sdp_record.xml /etc/bluetooth/sdp_record.xml
+sudo cp /home/ankush/git/bthidhub/install/input.conf /etc/bluetooth/input.conf
+sudo cp /home/ankush/git/bthidhub/install/main.conf /etc/bluetooth/main.conf
 
-sudo cp /home/pi/bthidhub/install/remapper.service /lib/systemd/system/remapper.service
+sudo cp /home/ankush/git/bthidhub/install/remapper.service /lib/systemd/system/remapper.service
 sudo chmod 644 /lib/systemd/system/remapper.service
 sudo systemctl daemon-reload
 

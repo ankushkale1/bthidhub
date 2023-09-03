@@ -108,7 +108,7 @@ class Web:
             raise web.HTTPUnauthorized()
 
     async def handler_is_authorised(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         return web.Response()
 
     async def on_hid_devices_change(self):
@@ -129,7 +129,7 @@ class Web:
         return web.HTTPFound('/index.html')
 
     async def change_password_handler(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         data = await request.post()
         current_password = data['current_password']
         new_password = data['new_password']
@@ -140,19 +140,19 @@ class Web:
         return web.Response(text="Password successfully changed")
 
     async def restart_service_handler(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         sys.exit(1)
 
     async def reboot_handler(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         subprocess.Popen(['reboot'])
 
     async def get_hid_devices_handler(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         return web.Response(text=json.dumps(self.hid_devices.get_hid_devices_with_config()))
 
     async def set_device_capture(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         data = await request.post()
         device_id = data['device_id']
         capture_state = data['capture'].lower() == 'true'
@@ -160,7 +160,7 @@ class Web:
         return web.Response()
 
     async def set_device_filter(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         data = await request.post()
         device_id = data['device_id']
         filter = data['filter']
@@ -168,7 +168,7 @@ class Web:
         return web.Response()
 
     async def set_compatibility_device(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         data = await request.post()
         device_path = data['device_path']
         compatibility_state = data['compatibility_state'].lower() == 'true'
@@ -177,7 +177,7 @@ class Web:
         return web.Response()
 
     async def start_scanning(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         try:
             self.adapter.start_scan()
         except Exception as exc:
@@ -185,7 +185,7 @@ class Web:
         return web.Response()
 
     async def stop_scanning(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         try:
             self.adapter.stop_scan()
         except Exception as exc:
@@ -193,7 +193,7 @@ class Web:
         return web.Response()
 
     async def start_discoverable(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         try:
             self.adapter.start_discoverable()
         except Exception as exc:
@@ -201,7 +201,7 @@ class Web:
         return web.Response()
 
     async def stop_discoverable(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         try:
             self.adapter.stop_discoverable()
         except Exception as exc:
@@ -209,7 +209,7 @@ class Web:
         return web.Response()
 
     async def get_bluetooth_devices(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         return web.Response(text=json.dumps(self.adapter.get_devices()))
 
     async def on_agent_action(self, msg):
@@ -223,7 +223,7 @@ class Web:
                 {'msg': 'bt_devices_updated'}), loop=self.loop)
 
     async def websocket_handler(self, request):
-        await check_authorized(request)
+        #await check_authorized(request)
         ws = web.WebSocketResponse()
         await ws.prepare(request)
 

@@ -11,6 +11,8 @@ from watchgod import awatch, AllWatcher
 
 from hid_message_filter import HIDMessageFilter
 from mouse_message_filter import MouseMessageFilter
+from mouse_message_filter_dell import MouseMessageFilterDell
+from mouse_message_filter_logitech import MouseMessageFilterLogitech
 from combo_sk8845_message_filter import SK8845MessageFilter
 from compatibility_device import CompatibilityModeDevice
 
@@ -22,12 +24,16 @@ FILTER_ELEMENT = 'filter'
 FILTERS = [
     {"id": "Default", "name": "Default"},
     {"id": "Mouse", "name": "Mouse"},
+    {"id": "Dell Mouse", "name": "Dell Mouse"},
+    {"id": "Logitech Mouse", "name": "Logitech Mouse"},
     {"id": "SK-8845", "name": "SK-8845"}
 ]
 
 FILTER_INSTANCES = {
     "Default": HIDMessageFilter(),
     "Mouse": MouseMessageFilter(),
+    "Dell Mouse": MouseMessageFilterDell(),
+    "Logitech Mouse": MouseMessageFilterLogitech(),
     "SK-8845": SK8845MessageFilter()
 }
 
