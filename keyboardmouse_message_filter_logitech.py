@@ -1,8 +1,9 @@
-import re
+# Copyright (c) 2020 ruundii. All rights reserved.
+#
+from hid_message_filter import HIDMessageFilter
 
-#output from command : sudo hid-decode /dev/hidraw5
+# from the default sdp record
 
-text = """
 # Logitech Wireless Keyboard & Mouse combo
 # 0x05, 0x01,                    // Usage Page (Generic Desktop)        0
 # 0x09, 0x06,                    // Usage (Keyboard)                    2
@@ -145,20 +146,60 @@ text = """
 # 0x09, 0x42,                    //  Usage (Vendor Usage 0x42)          283
 # 0x91, 0x00,                    //  Output (Data,Arr,Abs)              285
 # 0xc0,                          // End Collection                      287
-"""
-
-# Use regular expressions to find hex byte patterns (e.g., 0x05, 0x01)
-hex_bytes = re.findall(r'0x[0-9A-Fa-f]{2}', text)
-
-# Join the hex bytes with a comma and space
-result = ', '.join(hex_bytes)
-
-def main():
-    # Your program's main logic here
-    print("Hex: "+result)
-    print("Plain: "+result.replace("0x", "").replace(", ",""))
-
-if __name__ == "__main__":
-    main()
 
 
+#There are 16 buttons, and each button's state is represented by 1 bit., so first 16 bits / 2 bytes for button state
+# X and Y coordinates are represented by 12 bits each. so 24bits for XY Logical Minimum (-2047) and Logical Maximum (2047), 3 bytes
+# The wheel position is represented by 8 bits. Logical Minimum (-127) and Logical Maximum (127)
+# The AC Pan feature is represented by 1 bit.
+#if you receive a report with the ID of 2, you would expect to find data for buttons, X and Y coordinates, and the wheel position in that report, each in the format specified by the descriptor.
+
+class KeyboardMouseMessageFilterLogitech(HIDMessageFilter):
+    def __init__(self):
+        self.message_size = 7
+
+    def filter_message_to_host(self, msg):
+        # if len(msg) != self.message_size:
+        #     return None
+        try:
+            hex_string = ' '.join([f'{byte:02X}' for byte in msg])
+            print("Raw Text: " + hex_string)
+            #msg = b'\xa1\x02' + \
+            #    self.get_buttons_flags(msg) + self.get_xy(msg) + self.get_wheel(msg) + self.get_acFlag(msg)
+            msg = b'\xa1' + msg
+            #hex_string = ' '.join([f'{byte:02X}' for byte in msg])
+            #print("Parsed Text: " + hex_string)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        return msg
+
+    def get_buttons_flags(self, msg):
+        #print("Buttons: "+msg[1:3])
+        return msg[1:3]
+
+    # def get_x(self, msg):
+    #     # Extract the first 12 bits (X)
+    #     x = ((msg[4] << 4) | (msg[5] >> 4)) & 0xFFF
+    #     print("X: "+x)
+    #     return x
+    #
+    # def get_y(self, msg):
+    #     # Extract the next 12 bits (Y)
+    #     y = (((msg[5] & 0xF) << 8) | msg[6]) & 0xFFF
+    #     print("Y: "+y)
+    #     return y
+
+    def get_xy(self, msg):
+        #print("XY: "+msg[3:6])
+        return msg[3:6]
+
+    def get_wheel(self, msg):
+        #print("Wheel: "+msg[6:7])
+        return msg[6:7]
+
+    def get_acFlag(self, msg):
+        #print("Wheel: "+msg[6:7])
+        return msg[7:8]
+
+    def filter_message_from_host(self, msg):
+        return None

@@ -15,6 +15,7 @@ from mouse_message_filter_dell import MouseMessageFilterDell
 from mouse_message_filter_logitech import MouseMessageFilterLogitech
 from combo_sk8845_message_filter import SK8845MessageFilter
 from compatibility_device import CompatibilityModeDevice
+from keyboardmouse_message_filter_logitech import KeyboardMouseMessageFilterLogitech
 
 DEVICES_CONFIG_FILE_NAME = 'devices_config.json'
 DEVICES_CONFIG_COMPATIBILITY_DEVICE_KEY = 'compatibility_devices'
@@ -26,6 +27,7 @@ FILTERS = [
     {"id": "Mouse", "name": "Mouse"},
     {"id": "Dell Mouse", "name": "Dell Mouse"},
     {"id": "Logitech Mouse", "name": "Logitech Mouse"},
+    {"id": "Logitech KBMouse", "name": "Logitech KBMouse"},
     {"id": "SK-8845", "name": "SK-8845"}
 ]
 
@@ -34,6 +36,7 @@ FILTER_INSTANCES = {
     "Mouse": MouseMessageFilter(),
     "Dell Mouse": MouseMessageFilterDell(),
     "Logitech Mouse": MouseMessageFilterLogitech(),
+    "Logitech KBMouse": KeyboardMouseMessageFilterLogitech(),
     "SK-8845": SK8845MessageFilter()
 }
 
