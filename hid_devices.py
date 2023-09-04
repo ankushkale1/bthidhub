@@ -18,6 +18,7 @@ from compatibility_device import CompatibilityModeDevice
 from keyboardmouse_message_filter_logitech import KeyboardMouseMessageFilterLogitech
 
 DEVICES_CONFIG_FILE_NAME = 'devices_config.json'
+DEFAULT_CONFIG = "default_config.json"
 DEVICES_CONFIG_COMPATIBILITY_DEVICE_KEY = 'compatibility_devices'
 CAPTURE_ELEMENT = 'capture'
 FILTER_ELEMENT = 'filter'
@@ -80,9 +81,10 @@ class HIDDevice:
         if tm is None or self.device_registry.bluetooth_devices is None:
             return
         if tm == b'\xff':
-            print("Switching Device..")
-            self.device_registry.bluetooth_devices.switch_host()
+            #print("Switching Device..")
+            #self.device_registry.bluetooth_devices.switch_host()
             #self.indicate_switch_with_mouse_movement()
+            self.device_registry.release_all_devices()
         else:
             self.device_registry.bluetooth_devices.send_message(
                 tm, True, False)
@@ -253,12 +255,24 @@ class HIDDeviceRegistry:
                     dev, self.__get_configured_device_filter(dev["id"]), self.loop, self)
                 self.logger.debug(f"Added new Device {dev['name']} HIDRAW: {dev['hidraw']}")
                 print("Added new Device "+dev["name"]+" HIDRAW: "+dev["hidraw"])
+                # Parse the JSON data & add default config / profile to device
+                if os.path.exists(DEFAULT_CONFIG):
+                    with open(DEFAULT_CONFIG, 'r') as default_config_file:
+                        self.default_config_json = json.loads(default_config_file.read())
+                        # Iterate through the key-value pairs and print them
+                        for key, value in self.default_config_json.items():
+                            self.set_device_filter(key, value)
         self.devices = devs
 
     def set_device_capture(self, device_id, capture):
         if device_id not in self.devices_config:
             self.devices_config[device_id] = {}
         self.devices_config[device_id][CAPTURE_ELEMENT] = capture
+        self.__save_config()
+        self.__scan_devices()
+
+    def release_all_devices(self):
+        self.devices_config = {}
         self.__save_config()
         self.__scan_devices()
 

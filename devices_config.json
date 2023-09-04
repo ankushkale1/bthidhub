@@ -1,1 +1,1 @@
-{"0003:04B3:301E": {"capture": true, "filter": "SK-8845"}, "0003:046D:4055": {"capture": false, "filter": "Logitech KBMouse"}, "0003:413C:301A": {"capture": true, "filter": "Dell Mouse"}, "0003:046D:4076": {"capture": false, "filter": "Logitech KBMouse"}}
+{"0003:046D:4055": {"capture": false, "filter": "Logitech KBMouse"}, "0003:046D:4076": {"filter": "Logitech KBMouse"}}
