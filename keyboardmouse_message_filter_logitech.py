@@ -162,20 +162,27 @@ class KeyboardMouseMessageFilterLogitech(HIDMessageFilter):
         # if len(msg) != self.message_size:
         #     return None
         try:
-            hex_string = ' '.join([f'{byte:02X}' for byte in msg])
-            print("Raw Text: " + hex_string)
+            # hex_string = ' '.join([f'{byte:02X}' for byte in msg])
+            # print("Raw Text: " + hex_string)
             #msg = b'\xa1\x02' + \
             #    self.get_buttons_flags(msg) + self.get_xy(msg) + self.get_wheel(msg) + self.get_acFlag(msg)
-            msg = b'\xa1' + msg
+            if self.switch_host(msg):
+                msg = b'\xff'
+            else:
+                msg = b'\xa1' + msg
+
             #hex_string = ' '.join([f'{byte:02X}' for byte in msg])
             #print("Parsed Text: " + hex_string)
         except Exception as e:
             print(f"An error occurred: {e}")
         return msg
 
-    def get_buttons_flags(self, msg):
-        #print("Buttons: "+msg[1:3])
-        return msg[1:3]
+    def switch_host(self, msg):
+        return msg == b'\x03#\x02\x00\x00'
+
+    # def get_buttons_flags(self, msg):
+    #     #print("Buttons: "+msg[1:3])
+    #     return msg[1:3]
 
     # def get_x(self, msg):
     #     # Extract the first 12 bits (X)
@@ -189,17 +196,17 @@ class KeyboardMouseMessageFilterLogitech(HIDMessageFilter):
     #     print("Y: "+y)
     #     return y
 
-    def get_xy(self, msg):
-        #print("XY: "+msg[3:6])
-        return msg[3:6]
-
-    def get_wheel(self, msg):
-        #print("Wheel: "+msg[6:7])
-        return msg[6:7]
-
-    def get_acFlag(self, msg):
-        #print("Wheel: "+msg[6:7])
-        return msg[7:8]
-
-    def filter_message_from_host(self, msg):
-        return None
+    # def get_xy(self, msg):
+    #     #print("XY: "+msg[3:6])
+    #     return msg[3:6]
+    #
+    # def get_wheel(self, msg):
+    #     #print("Wheel: "+msg[6:7])
+    #     return msg[6:7]
+    #
+    # def get_acFlag(self, msg):
+    #     #print("Wheel: "+msg[6:7])
+    #     return msg[7:8]
+    #
+    # def filter_message_from_host(self, msg):
+    #     return None

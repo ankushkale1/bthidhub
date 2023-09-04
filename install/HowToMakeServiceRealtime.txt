@@ -1,0 +1,45 @@
+To make the BlueZ Bluetooth process run in real-time whenever its service is started in Ubuntu, you will need to modify the service configuration and potentially assign real-time priorities to the relevant processes. Here are the general steps to achieve this:
+
+Check Service Configuration:
+First, identify the service that manages the BlueZ Bluetooth process. Typically, it is managed by a systemd service. You can check the service status and configuration using the following command:
+systemctl status bluetooth
+
+Create a Real-Time User Group:
+To run processes with real-time priorities, you need to create a dedicated group for this purpose and add your user to it. Open the /etc/security/limits.conf file for editing:
+
+sudo nano /etc/security/limits.conf
+Add the following lines to the file to define your real-time group and assign real-time priorities:
+@realtime_group   -       rtprio     99
+@realtime_group   -       memlock    unlimited
+Replace realtime_group with the desired group name.
+
+Add Your User to the Real-Time Group:
+Add your user to the group you defined in the previous step:
+
+sudo usermod -aG realtime_group your_username
+Replace your_username with your actual username.
+
+Modify the Service Configuration:
+You will need to modify the systemd service configuration for Bluetooth to run with real-time priorities. Open the service file for editing:
+
+sudo nano /etc/systemd/system/bluetooth.service
+Add the following lines under the [Service] section to set the process priority and run it with real-time capabilities:
+
+# Set the process priority to real-time
+Nice=-20
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=99
+Save and exit the file.
+
+Reload and Restart Services:
+Reload the systemd daemon and restart the Bluetooth service to apply the changes:
+
+sudo systemctl daemon-reload
+sudo systemctl restart bluetooth
+Verify Real-Time Priority:
+You can verify that the Bluetooth process now has real-time priority by checking its status:
+
+systemctl status bluetooth
+Look for lines indicating the nice value and scheduling policy, which should reflect the changes you made.
+
+Please note that modifying the priority of system services, especially those related to hardware like Bluetooth, can have unintended consequences. Ensure that you fully understand the implications of running a process with real-time priority and test thoroughly to ensure system stability and Bluetooth functionality.

@@ -12,6 +12,10 @@ StandardOutput=file:/home/pi/bthidhub/stdout.log
 StandardError=file:/home/pi/bthidhub/stderr.log
 WorkingDirectory=/home/pi/bthidhub
 Restart=on-abort
+# Set the process priority to real-time
+Nice=-20
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=99
  
 [Install]
 WantedBy=multi-user.target

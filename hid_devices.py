@@ -81,8 +81,9 @@ class HIDDevice:
         if tm is None or self.device_registry.bluetooth_devices is None:
             return
         if tm == b'\xff':
+            print("Switching Device..")
             self.device_registry.bluetooth_devices.switch_host()
-            self.indicate_switch_with_mouse_movement()
+            #self.indicate_switch_with_mouse_movement()
         else:
             self.device_registry.bluetooth_devices.send_message(
                 tm, True, False)

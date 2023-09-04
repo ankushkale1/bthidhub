@@ -18,6 +18,7 @@ if __name__ == "__main__":
     logging.config.dictConfig(server_config)
     root_logger = logging.getLogger()
     root_logger.info(f"Log level set to {logging.getLevelName(root_logger.getEffectiveLevel())}")
+    #root_logger.info("Log level set to %s" % logging.getLevelName(root_logger.getEffectiveLevel()))
 
     asyncio.set_event_loop_policy(asyncio_glib.GLibEventLoopPolicy())
     loop = asyncio.get_event_loop()
