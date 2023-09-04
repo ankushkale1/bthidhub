@@ -28,7 +28,6 @@ FILTERS = [
     {"id": "Dell Mouse", "name": "Dell Mouse"},
     {"id": "Logitech Mouse", "name": "Logitech Mouse"},
     {"id": "Logitech KBMouse", "name": "Logitech KBMouse"},
-    {"id": "SK-8845", "name": "SK-8845"}
 ]
 
 FILTER_INSTANCES = {
@@ -60,7 +59,7 @@ class HIDDevice:
         self.hidraw_file = os.open(
             '/dev/'+self.hidraw, os.O_RDWR | os.O_NONBLOCK)
         loop.add_reader(self.hidraw_file, self.hidraw_event)
-        self.logger.debug(f"HID Device {self.device_id} created")
+        self.logger.debug(f"HID Device {self.device_id} = {self.name} created")
 
     def set_device_filter(self, filter):
         self.filter = filter
@@ -75,7 +74,7 @@ class HIDDevice:
             self.loop.remove_reader(self.hidraw_file)
             os.close(self.hidraw_file)
             self.hidraw_file = None
-            self.logger.debug(f"HID device {self.device_id} exception on read. closing")
+            self.logger.debug(f"HID device {self.device_id} = {self.name} exception on read. closing")
             return
         tm = self.filter.filter_message_to_host(msg)
         if tm is None or self.device_registry.bluetooth_devices is None:
@@ -132,10 +131,10 @@ class HIDDevice:
             self.hidraw_file = None
         except:
             pass
-        self.logger.debug(f"HID Device {self.device_id} finalised")
+        self.logger.debug(f"HID Device {self.device_id}  = {self.name} finalised ")
 
     def __del__(self):
-        self.logger.debug(f"HID Device {self.device_id} removed")
+        self.logger.debug(f"HID Device {self.device_id}  = {self.name} removed  from listening events")
 
 
 class DeviceDirWatcher(AllWatcher):
@@ -252,6 +251,8 @@ class HIDDeviceRegistry:
                 # create capturing device
                 self.capturing_devices[dev["instance"]] = HIDDevice(
                     dev, self.__get_configured_device_filter(dev["id"]), self.loop, self)
+                self.logger.debug(f"Added new Device {dev['name']} HIDRAW: {dev['hidraw']}")
+                print("Added new Device "+dev["name"]+" HIDRAW: "+dev["hidraw"])
         self.devices = devs
 
     def set_device_capture(self, device_id, capture):
